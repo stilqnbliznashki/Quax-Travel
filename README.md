@@ -1,9 +1,3 @@
-# Quax Travel
-
-Tourism discovery MVP for a two-person Quax Internship project. The app focuses on
-one selected destination, Sofia, and gives tourists one place to browse hotels,
-restaurants, attractions, offers, map points, and practical destination/weather info.
-
 ## Getting Started
 
 ```bash
@@ -20,26 +14,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - Prisma ORM
 - PostgreSQL on Supabase
 
-## MVP Routes
-
-- `/` home page
-- `/hotels`
-- `/restaurants`
-- `/attractions`
-- `/places/[slug]`
-- `/offers`
-- `/map`
-- `/destination`
-
 ## Database Setup
 
 1. Create a Supabase project.
 2. Copy the Supabase Postgres connection string.
 3. Replace `DATABASE_URL` in `.env`.
 4. Run `npx prisma migrate dev --name init` when you are ready to create tables.
-
-The current UI uses local sample data in `src/lib/places.ts`, so the app can run
-before the database is connected.
 
 ## Scripts
 
