@@ -19,7 +19,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 1. Create a Supabase project.
 2. Copy the Supabase Postgres connection string.
 3. Replace `DATABASE_URL` in `.env`.
-4. Run `npx prisma migrate dev --name init` when you are ready to create tables.
+4. If the Supabase tables already exist, run `npx prisma db pull`, then `npx prisma generate`.
 
 ## Scripts
 

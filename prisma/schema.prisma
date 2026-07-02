@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,69 +7,324 @@ datasource db {
   provider = "postgresql"
 }
 
-enum PlaceCategory {
-  HOTEL
-  RESTAURANT
-  ATTRACTION
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model attractions {
+  attraction_id   String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  destination_id  String              @db.Uuid
+  attraction_name String              @db.VarChar(200)
+  description     String?
+  category        attraction_category
+  latitude        Float?
+  longitude       Float?
+  address         String?
+  opening_hours   Json?
+  closing_hours   Json?
+  entry_fee       Decimal?            @db.Decimal(10, 2)
+  currency        String?             @db.Char(3)
+  avg_rating      Decimal?            @default(0) @db.Decimal(2, 1)
+  review_count    Int?                @default(0)
+  website_url     String?
+  phone           String?             @db.VarChar(20)
+  created_at      DateTime            @default(now()) @db.Timestamptz(6)
+  destinations    destinations        @relation(fields: [destination_id], references: [destination_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([destination_id], map: "idx_attractions_destination")
+  @@index([latitude, longitude], map: "idx_attractions_lat_lng")
+  @@index([attraction_name(ops: raw("gin_trgm_ops"))], map: "idx_attractions_name_trgm", type: Gin)
 }
 
-model Destination {
-  id         String            @id @default(cuid())
-  name       String
-  country    String
-  summary    String
-  currency   String
-  language   String
-  bestSeason String
-  emergency  String
-  latitude   Float
-  longitude  Float
-  places     Place[]
-  weather    WeatherSnapshot[]
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model bookings {
+  booking_id     String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pid            String         @db.Uuid
+  item_type      item_type_enum
+  item_id        String         @db.Uuid
+  start_datetime DateTime       @db.Timestamptz(6)
+  end_datetime   DateTime?      @db.Timestamptz(6)
+  num_guests     Int?           @default(1) @db.SmallInt
+  total_price    Decimal        @db.Decimal(10, 2)
+  currency       String         @db.Char(3)
+  status         booking_status @default(pending)
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  customer       customer       @relation(fields: [pid], references: [pid], onDelete: NoAction, onUpdate: NoAction)
+  payments       payments[]
+
+  @@index([pid], map: "idx_bookings_customer")
+  @@index([item_type, item_id], map: "idx_bookings_item")
 }
 
-model Place {
-  id            String        @id @default(cuid())
-  slug          String        @unique
-  name          String
-  category      PlaceCategory
-  shortSummary  String
-  description   String
-  address       String
-  neighborhood  String
-  priceHint     String
-  rating        Float
-  imageUrl      String?
-  latitude      Float
-  longitude     Float
-  destinationId String
-  destination   Destination   @relation(fields: [destinationId], references: [id], onDelete: Cascade)
-  offers        Offer[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  @@index([category])
-  @@index([rating])
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model customer {
+  pid                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customer_name      String            @db.VarChar(150)
+  email              String            @unique @db.VarChar(255)
+  password_hash      String
+  phone_number       String?           @db.VarChar(20)
+  home_country       String?           @db.Char(2)
+  preferred_language String?           @db.Char(2)
+  preferred_currency String?           @db.Char(3)
+  created_at         DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime          @default(now()) @db.Timestamptz(6)
+  bookings           bookings[]
+  favourites         favourites[]
+  itineraries        itineraries[]
+  offers             offers[]
+  reviews            reviews[]
+  settlement         settlement[]
+  tour_activities    tour_activities[]
+  transport          transport[]
 }
 
-model Offer {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  priceLabel  String
-  validUntil  DateTime?
-  placeId     String
-  place       Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model destinations {
+  destination_id                                          String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  destination_name                                        String            @db.VarChar(200)
+  description                                             String?
+  country                                                 String            @db.Char(2)
+  region                                                  String?           @db.VarChar(150)
+  city                                                    String?           @db.VarChar(150)
+  latitude                                                Float?
+  longitude                                               Float?
+  timezone                                                String?           @db.VarChar(50)
+  best_season                                             String?           @db.VarChar(50)
+  cover_image_url                                         String?
+  created_at                                              DateTime          @default(now()) @db.Timestamptz(6)
+  attractions                                             attractions[]
+  itineraries                                             itineraries[]
+  settlement                                              settlement[]
+  tour_activities                                         tour_activities[]
+  transport_transport_dest_destination_idTodestinations   transport[]       @relation("transport_dest_destination_idTodestinations")
+  transport_transport_origin_destination_idTodestinations transport[]       @relation("transport_origin_destination_idTodestinations")
+
+  @@index([latitude, longitude], map: "idx_destinations_lat_lng")
 }
 
-model WeatherSnapshot {
-  id            String      @id @default(cuid())
-  date          DateTime
-  condition     String
-  temperatureC  Int
-  destinationId String
-  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model favourites {
+  pid       String   @db.Uuid
+  item_type String   @db.VarChar(30)
+  item_id   String   @db.Uuid
+  added_at  DateTime @default(now()) @db.Timestamptz(6)
+  customer  customer @relation(fields: [pid], references: [pid], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([pid, item_type, item_id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model item_tags {
+  item_type String @db.VarChar(30)
+  item_id   String @db.Uuid
+  tag_id    Int
+  tags      tags   @relation(fields: [tag_id], references: [tag_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([item_type, item_id, tag_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model itineraries {
+  itinerary_id   String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pid            String         @db.Uuid
+  title          String         @db.VarChar(200)
+  start_date     DateTime       @db.Date
+  end_date       DateTime       @db.Date
+  destination_id String?        @db.Uuid
+  is_public      Boolean        @default(false)
+  created_at     DateTime       @default(now()) @db.Timestamptz(6)
+  destinations   destinations?  @relation(fields: [destination_id], references: [destination_id], onDelete: NoAction, onUpdate: NoAction)
+  customer       customer       @relation(fields: [pid], references: [pid], onDelete: Cascade, onUpdate: NoAction)
+  routes_items   routes_items[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model offers {
+  offer_id            String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  provider_id         String?       @db.Uuid
+  promo_code          String?       @unique @db.VarChar(50)
+  title               String        @db.VarChar(200)
+  description         String?
+  discount_type       discount_type
+  discount_value      Decimal       @db.Decimal(10, 2)
+  currency            String?       @db.Char(3)
+  min_booking_value   Decimal?      @db.Decimal(10, 2)
+  max_discount_amount Decimal?      @db.Decimal(10, 2)
+  valid_from          DateTime      @db.Timestamptz(6)
+  valid_until         DateTime      @db.Timestamptz(6)
+  is_active           Boolean       @default(true)
+  created_at          DateTime      @default(now()) @db.Timestamptz(6)
+  customer            customer?     @relation(fields: [provider_id], references: [pid], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([valid_from, valid_until], map: "idx_offers_dates")
+  @@index([promo_code], map: "idx_offers_promo_code")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model payments {
+  payment_id            String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  booking_id            String         @db.Uuid
+  amount                Decimal        @db.Decimal(10, 2)
+  currency              String         @db.Char(3)
+  payment_method        String?        @db.VarChar(50)
+  status                payment_status @default(pending)
+  transaction_reference String?        @db.VarChar(255)
+  paid_at               DateTime?      @db.Timestamptz(6)
+  bookings              bookings       @relation(fields: [booking_id], references: [booking_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reviews {
+  review_id      String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pid            String   @db.Uuid
+  item_type      String   @db.VarChar(30)
+  item_id        String   @db.Uuid
+  rating         Int      @db.SmallInt
+  review_comment String?
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  customer       customer @relation(fields: [pid], references: [pid], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([pid, item_type, item_id])
+  @@index([item_type, item_id], map: "idx_reviews_item")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model routes_items {
+  item_id      String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  itinerary_id String      @db.Uuid
+  day_number   Int         @db.SmallInt
+  item_type    String      @db.VarChar(30)
+  item_ref_id  String      @db.Uuid
+  start_time   DateTime?   @db.Time(6)
+  notes        String?
+  order_index  Int         @default(0) @db.SmallInt
+  itineraries  itineraries @relation(fields: [itinerary_id], references: [itinerary_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([itinerary_id, day_number, order_index], map: "idx_itinerary_items")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model settlement {
+  settlement_id   String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  destination_id  String          @db.Uuid
+  host_id         String?         @db.Uuid
+  settlement_name String          @db.VarChar(200)
+  type            settlement_type
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  price_per_night Decimal         @db.Decimal(10, 2)
+  currency        String          @db.Char(3)
+  star_rating     Int?            @db.SmallInt
+  amenities       Json?
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  destinations    destinations    @relation(fields: [destination_id], references: [destination_id], onDelete: Cascade, onUpdate: NoAction)
+  customer        customer?       @relation(fields: [host_id], references: [pid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tags {
+  tag_id    Int         @id @default(autoincrement())
+  tag_name  String      @unique @db.VarChar(50)
+  item_tags item_tags[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tour_activities {
+  activity_id      String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  destination_id   String       @db.Uuid
+  provider_id      String?      @db.Uuid
+  activity_name    String       @db.VarChar(200)
+  description      String?
+  duration_minutes Int?
+  price            Decimal      @db.Decimal(10, 2)
+  currency         String       @db.Char(3)
+  max_participants Int?         @db.SmallInt
+  created_at       DateTime     @default(now()) @db.Timestamptz(6)
+  destinations     destinations @relation(fields: [destination_id], references: [destination_id], onDelete: Cascade, onUpdate: NoAction)
+  customer         customer?    @relation(fields: [provider_id], references: [pid], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model transport {
+  transport_id                                               String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  provider_id                                                String?        @db.Uuid
+  mode                                                       transport_type
+  origin_destination_id                                      String?        @db.Uuid
+  dest_destination_id                                        String?        @db.Uuid
+  origin_latitude                                            Float?
+  origin_longitude                                           Float?
+  location_latitude                                          Float?
+  location_longitude                                         Float?
+  departure_time                                             DateTime       @db.Timestamptz(6)
+  arrival_time                                               DateTime       @db.Timestamptz(6)
+  duration_minutes                                           Int?           @default(dbgenerated("((EXTRACT(epoch FROM (arrival_time - departure_time)) / (60)::numeric))::integer"))
+  price                                                      Decimal        @db.Decimal(10, 2)
+  currency                                                   String         @db.Char(3)
+  vehicle_details                                            Json?
+  booking_reference_format                                   String?        @db.VarChar(50)
+  created_at                                                 DateTime       @default(now()) @db.Timestamptz(6)
+  destinations_transport_dest_destination_idTodestinations   destinations?  @relation("transport_dest_destination_idTodestinations", fields: [dest_destination_id], references: [destination_id], onDelete: NoAction, onUpdate: NoAction)
+  destinations_transport_origin_destination_idTodestinations destinations?  @relation("transport_origin_destination_idTodestinations", fields: [origin_destination_id], references: [destination_id], onDelete: NoAction, onUpdate: NoAction)
+  customer                                                   customer?      @relation(fields: [provider_id], references: [pid], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([departure_time], map: "idx_transport_departure")
+  @@index([mode], map: "idx_transport_mode")
+  @@index([origin_destination_id, dest_destination_id], map: "idx_transport_route")
+  @@index([vehicle_details], map: "idx_transport_vehicle_details", type: Gin)
+}
+
+enum attraction_category {
+  museum
+  landmark
+  monastery
+  park
+  temple
+  shopping
+  zoo
+  nature
+  other
+}
+
+enum booking_status {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+enum discount_type {
+  percentage
+  fixed_amount
+}
+
+enum item_type_enum {
+  settlement
+  activity
+  transport
+}
+
+enum payment_status {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+enum settlement_type {
+  hotel
+  apartments
+  resort
+}
+
+enum transport_type {
+  bus
+  trolleybus
+  car_rental
+  taxi
+  transfer
 }
