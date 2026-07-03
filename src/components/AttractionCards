@@ -1,0 +1,54 @@
+// src/components/cards/AttractionCard.tsx
+import Image from "next/image";
+import Link from "next/link";
+import { RatingStars } from "@/components/ui/Ratingstars";
+import { Badge } from "@/components/ui/Badge";
+import { MapPin } from "lucide-react";
+
+type Props = {
+  id: string;
+  name: string;
+  category: string;
+  imageUrl?: string | null;
+  avgRating: number;
+  reviewCount: number;
+  city?: string | null;
+  entryFee?: number | null;
+  currency?: string | null;
+  hasActiveDeal?: boolean;
+};
+
+export function AttractionCard({ id, name, category, imageUrl, avgRating, reviewCount, city, entryFee, currency, hasActiveDeal }: Props) {
+  return (
+    <Link href={`/attractions/${id}`} className="group block rounded-xl overflow-hidden border border-neutral-100 hover:shadow-lg transition-shadow">
+      <div className="relative aspect-4/3 bg-neutral-100">
+        {imageUrl && (
+          <Image src={imageUrl} alt={name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+        )}
+        {hasActiveDeal && (
+          <div className="absolute top-3 left-3">
+            <Badge variant="deal">Deal</Badge>
+          </div>
+        )}
+      </div>
+      <div className="p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <Badge variant="category">{category.replace("_", " ")}</Badge>
+          <RatingStars rating={avgRating} reviewCount={reviewCount} />
+        </div>
+        <h3 className="font-display text-lg font-medium text-neutral-900">{name}</h3>
+        {city && (
+          <div className="flex items-center gap-1 text-sm text-neutral-600">
+            <MapPin className="w-3.5 h-3.5" />
+            {city}
+          </div>
+        )}
+        {entryFee !== null && entryFee !== undefined && (
+          <p className="text-sm text-neutral-900 font-medium">
+            {entryFee === 0 ? "Free entry" : `${entryFee} ${currency}`}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+}
