@@ -17,6 +17,7 @@ type TravelMapProps = {
   places: MapPlace[];
   center?: [number, number];
   zoom?: number;
+  onPlaceClick?: (place: MapPlace) => void;
 };
 
 const DEFAULT_CENTER: [number, number] = [42.6977, 23.3219];
@@ -35,6 +36,7 @@ export function TravelMap({
   places,
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
+  onPlaceClick,
 }: TravelMapProps) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const leafletRef = useRef<typeof Leaflet | null>(null);
@@ -87,8 +89,19 @@ export function TravelMap({
     markerLayerRef.current.clearLayers();
 
     places.forEach((place) => {
-      L.marker([place.latitude, place.longitude])
+      const markerIcon = L.icon({
+        iconUrl: "/icons.png",
+        iconSize: [19, 45],
+        iconAnchor: [10, 45],
+        popupAnchor: [0, -42],
+      });
+
+      L.marker([place.latitude, place.longitude], { icon: markerIcon })
         .bindPopup(popupHtml(place))
+        .on("click", () => {
+          console.log("Marker clicked:", place);
+          onPlaceClick?.(place);
+        })
         .addTo(markerLayerRef.current!);
     });
 
@@ -102,12 +115,12 @@ export function TravelMap({
         maxZoom: 14,
       });
     }
-  }, [mapReady, places]);
+  }, [mapReady, onPlaceClick, places]);
 
   return (
     <div
       ref={mapElementRef}
-      className="h-[520px] w-full rounded-lg border border-[#ded5c7]"
+      className="h-[300px] w-full max-w-full overflow-hidden rounded-md sm:h-[400px] lg:h-[500px] [&_.leaflet-container]:max-w-full [&_.leaflet-control-container]:max-w-full"
     />
   );
 }
