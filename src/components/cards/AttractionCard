@@ -1,4 +1,3 @@
-// src/components/cards/AttractionCard.tsx
 import Image from "next/image";
 import Link from "next/link";
 import { RatingStars } from "@/components/ui/Ratingstars";
