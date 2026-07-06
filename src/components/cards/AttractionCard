@@ -1,8 +1,15 @@
+"use client";
+import { useCart } from "@/src/context/CartContext";
 import Image from "next/image";
 import Link from "next/link";
-import { RatingStars } from "@/components/ui/Ratingstars";
+import { RatingStars } from "@/components/ui/RatingStars";
 import { Badge } from "@/components/ui/Badge";
 import { MapPin } from "lucide-react";
+const { addItem } = useCart();
+
+<button onClick={() => addItem({ id: attraction.id, name: attraction.name, price: entryFee, currency })}>
+  Add to cart
+</button>
 
 type Props = {
   id: string;
