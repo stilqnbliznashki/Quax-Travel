@@ -1,10 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Heart, User, ShoppingCart } from "lucide-react";
+import { Search, Heart, User } from "lucide-react";
 const NAV_LINKS = [
-  { href: "/destinations", label: "Explore" },
-  { href: "/deals", label: "Deals" },
-  { href: "/dashboard/favorites", label: "Saved" },
+  { href: "/attractions", label: "Explore" },
+  { href: "/offers", label: "Offers" },
+  { href: "/restaurants", label: "Restaurants" },
+  { href: "/hotels", label: "Hotels" },
+  { href: "/map", label: "Map" }
 ];
 
 export function Navbar() {

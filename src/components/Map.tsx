@@ -120,7 +120,7 @@ export function TravelMap({
   return (
     <div
       ref={mapElementRef}
-      className="h-[300px] w-full max-w-full overflow-hidden rounded-md sm:h-[400px] lg:h-[500px] [&_.leaflet-container]:max-w-full [&_.leaflet-control-container]:max-w-full"
+      className="relative z-0 h-[300px] w-full max-w-full overflow-hidden rounded-md sm:h-[400px] lg:h-[500px] [&_.leaflet-container]:max-w-full [&_.leaflet-control-container]:max-w-full"
     />
   );
 }

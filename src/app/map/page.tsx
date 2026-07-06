@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AppShell } from "@/components/AppShell";
 import { TravelMap, type MapPlace } from "@/components/Map";
 import { markerEvents, type MarkerClickedEvent } from "@/components/markerEvents";
 import { MapSelection } from "./MapSelection";
@@ -49,7 +48,6 @@ export default function MapPage() {
   }, []);
 
   return (
-    <AppShell>
       <section className="mx-auto grid w-full max-w-6xl gap-5 overflow-x-hidden px-3 py-6 sm:px-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:py-10">
         <div className="min-w-0">
           <h1 className="text-3xl font-bold sm:text-4xl">Map</h1>
@@ -79,7 +77,6 @@ export default function MapPage() {
           </p>
         </div>
       </section>
-    </AppShell>
   );
 }
 
